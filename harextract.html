@@ -172,13 +172,15 @@ function loadHARJSON (har) {
         let harent = { id: id };
         let fullpath = new URL(ent.request.url).pathname.split('/');
         harent.name = fullpath.pop();
+        if (harent.name == '')
+            harent.name = 'index.html';
         harent.type = ent.response.content.mimeType; 
         harent.size = ent.response.content.size;
         harent.pathcomps = fullpath; // .path string will be set below
         if (!ent.response.content.text)
             harent.error = 'No content.';
-        else if (ent.response.content.encoding != 'base64')
-            harent.error = "Can't decode.";
+        //else if (ent.response.content.encoding != 'base64')
+        //    harent.error = "Can't decode.";
         if (harent.error) {
             console.log(`harextract: skipped ${harent.name} (${id}): ${harent.error}`);
             skipped.push(harent);
@@ -279,9 +281,9 @@ function buildZIP (ents, data) {
             if (filepath.startsWith('/'))
                 filepath = filepath.substring(1);
             let encoding = data[ent.id].response.content.encoding;
-            if (encoding != 'base64')
+            if (encoding != undefined && encoding != 'base64')
                 throw new Error(`Unsupported encoding for ${ent.name} (${ent.id}): ${encoding}`);
-            zip.file(filepath, data[ent.id].response.content.text, { base64: true });
+            zip.file(filepath, data[ent.id].response.content.text, { base64: encoding == 'base64' });
         } catch (e) {
             console.log(e);
         }
